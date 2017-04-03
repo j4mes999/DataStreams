@@ -97,6 +97,7 @@ public class KafkaConsumerStream {
                     //System.out.println("avrg: "+avrgGroup);
                     averageXgroup.add(avrgGroup);
                 }
+                
                 //System.out.println("AvrgGroupBeforeMEdian: "+averageXgroup);
                 double R = findMedian(averageXgroup);
                 //System.out.println("R: "+R);
@@ -105,8 +106,8 @@ public class KafkaConsumerStream {
                 }
 
                 if (countElements == MAX) {
-                    //countElements = 0;
-                   // writeAnswerIntoTopic(maxR);
+                    countElements = 0;
+                    writeAnswerIntoTopic(maxR);
                     System.out.println("answer: " + Math.pow(2, maxR));
                     //printHasMap(hashValues);
                 }
