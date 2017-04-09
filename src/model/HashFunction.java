@@ -13,7 +13,7 @@ public class HashFunction {
     
     private int a;
     private int b;
-    public static final int POWER = 22;
+    public static final int POWER = 23;
     private int maxR;
 
     
@@ -51,6 +51,7 @@ public class HashFunction {
     
     public long getHashValue(long element){
         return (long) ((this.a * element + this.b) % Math.pow(2, POWER));
+        //return (long) ((this.a * element + this.b) % POWER);
     }
     
     

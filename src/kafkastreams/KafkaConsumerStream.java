@@ -5,8 +5,9 @@
  */
 package kafkastreams;
 
-import com.sun.javafx.scene.control.skin.VirtualFlow;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.ForeachAction;
@@ -32,24 +32,24 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
  */
 public class KafkaConsumerStream {
 
-    public static final int GROUPSNUM = 9;
-    public static final int HASHFUNCXGROUP = 5;
+    public static final int GROUPSNUM = 20;
+    public static final int HASHFUNCXGROUP = 40;
 
-    public static final int MAX = 2000000;
+    public static final int MAX = 2500000;
     public static final int HASHCONSTANT = 123;
 
     public static void main(String[] args) {
 
         // First of all generate the HashFunctions
         List<Group> hashFunctions = generateFunctions();
-       printAll(hashFunctions);
+        printAll(hashFunctions);
         Properties settings = new Properties();
-// Set a few key parameters
-        settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "my-first-streams-application");
+        // Set a few key parameters
+        settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "FlajoletMartin");
         settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         settings.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, "zookeeper:2181");
 
-// Create an instance of StreamsConfig from the Properties instance
+        // Create an instance of StreamsConfig from the Properties instance
         StreamsConfig config = new StreamsConfig(settings);
         KStreamBuilder builder = new KStreamBuilder();
 
@@ -62,13 +62,17 @@ public class KafkaConsumerStream {
 
             public double maxR = 0;
             public int countElements = 0;
-
+            public Calendar startTime;
             @Override
             public void apply(String key, Long value) {
                 
                 List<Double> averageXgroup;
                 int countZeroes;
                 countElements++;
+                if(countElements == 1){
+                    startTime = Calendar.getInstance();
+                }
+                    
                 for (Group g : hashFunctions) {
                     for (HashFunction hf : g.getFunctions()) {
                         countZeroes = countZeroes(Long.toBinaryString(hf.getHashValue(value)));
@@ -83,10 +87,12 @@ public class KafkaConsumerStream {
 
                 if (countElements == MAX) {
                     countElements = 0;
+                    
+                    long executionTime = Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis();
                     averageXgroup = calculateAvrg(hashFunctions);
                     double R = findMedian(averageXgroup);
-                    writeAnswerIntoTopic(R);
-                    System.out.println("answer: " + Math.pow(2, R));
+                    writeAnswerIntoTopic(R,executionTime);
+                    System.out.println("answer: " + R);
                     //printHasMap(hashValues);
                 }
             }
@@ -125,7 +131,7 @@ public class KafkaConsumerStream {
 
         
 
-            private void writeAnswerIntoTopic(double maxR) {
+            private void writeAnswerIntoTopic(double maxR, long executionTime) {
                 Properties props = new Properties();
                 props.put("bootstrap.servers", "localhost:9092");
                 props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -133,8 +139,9 @@ public class KafkaConsumerStream {
                 Producer<String, String> producer;
                 producer = new org.apache.kafka.clients.producer.KafkaProducer<>(props);
 
-                double answer = Math.pow(2, maxR);
-                String topicResponse = Double.toString(answer) + " Groups: " + GROUPSNUM + " GroupSize:" + HASHFUNCXGROUP+" Pow: "+HashFunction.POWER;
+                long totalTime = executionTime/1000;
+                String topicResponse = Double.toString(maxR) + " Groups: " + GROUPSNUM + " GroupSize:" + HASHFUNCXGROUP+" Pow: "+HashFunction.POWER
+                                        +" Time: "+totalTime;
                 ProducerRecord<String, String> record = new ProducerRecord<>("FlajoletMartinResult", "key", topicResponse);
                 producer.send(record);
                 producer.close();
@@ -146,7 +153,7 @@ public class KafkaConsumerStream {
                for(Group g: hashFunctions){
                    avrg = 0;
                    for(HashFunction hf : g.getFunctions()){
-                       avrg += hf.getMaxR();
+                       avrg += Math.pow(2,hf.getMaxR() );
                        System.out.println("Max R: "+hf.getMaxR());
                    }
                    System.out.println("Avrg group "+avrg/HASHFUNCXGROUP);
@@ -158,7 +165,7 @@ public class KafkaConsumerStream {
             private void printGroup(List<Double> averageXgroup) {
                  System.out.println("Group");
                 for(double d: averageXgroup){
-                    System.out.print(d);
+                    System.out.print(d+" : ");
                 }
             }
         });
@@ -184,13 +191,13 @@ public class KafkaConsumerStream {
             for (int j = 0; j < HASHFUNCXGROUP; j++) {
                 do {
                     a = (int) (Integer.MAX_VALUE * Math.random());
-                    //a = (int) (11 * rnd.nextInt(59));
-                } while(false);   //(false); //(a % 2 == 0);
+                    //a = (int) (11 * rnd.nextInt(127));
+                } while(false);//(false); //(a % 2 == 0);
 
                 do {
                     b = (int)(Integer.MAX_VALUE * Math.random());
-                    //b = (int) (23 * rnd.nextInt(59));
-                } while (contains(hashValues, a, b));//(false);
+                    //b = (int) (23 * rnd.nextInt(127));
+                } while (contains(hashValues, a, b));//(false) (a % 2 == 0 || contains(hashValues, a, b));
                 bVal = hashValues.get(a);
                 if (bVal == null) {
                     bVal = new ArrayList<>();
