@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package kafkastreams;
 
 
@@ -28,7 +24,7 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
 
 /**
  *
- * @author root
+ * @author Luis Gonzalez
  */
 public class KafkaConsumerStream {
 
@@ -76,10 +72,10 @@ public class KafkaConsumerStream {
                 for (Group g : hashFunctions) {
                     for (HashFunction hf : g.getFunctions()) {
                         countZeroes = countZeroes(Long.toBinaryString(hf.getHashValue(value)));
-                        //System.out.println("countZero: "+countZeroes+" ele: "+Long.toBinaryString(hf.getHashValue(value)));
+                        
                         if(countZeroes > hf.getMaxR()){
                             hf.setMaxR(countZeroes);
-                            //System.out.println("New max:"+countZeroes);
+                           
                         }
                             
                     }
