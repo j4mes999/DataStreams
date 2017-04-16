@@ -32,10 +32,10 @@ import org.apache.kafka.streams.kstream.KStreamBuilder;
  */
 public class KafkaConsumerStream {
 
-    public static final int GROUPSNUM = 20;
+    public static final int GROUPSNUM = 10;
     public static final int HASHFUNCXGROUP = 40;
 
-    public static final int MAX = 2500000;
+    public static final int MAX = 2500001;
     public static final int HASHCONSTANT = 123;
 
     public static void main(String[] args) {
@@ -189,14 +189,14 @@ public class KafkaConsumerStream {
         for (int i = 0; i < GROUPSNUM; i++) {
             g = new Group();
             for (int j = 0; j < HASHFUNCXGROUP; j++) {
-                do {
-                    a = (int) (Integer.MAX_VALUE * Math.random());
-                    //a = (int) (11 * rnd.nextInt(127));
-                } while(false);//(false); //(a % 2 == 0);
+                
+                    a = (int) (Integer.MAX_VALUE * (Math.random()+1));
+                    //a = (int) (11 * (rnd.nextInt(127)+1));
+                
 
                 do {
-                    b = (int)(Integer.MAX_VALUE * Math.random());
-                    //b = (int) (23 * rnd.nextInt(127));
+                    b = (int)(Integer.MAX_VALUE * (Math.random()+1));
+                    //b = (int) (23 * (rnd.nextInt(127)+1));
                 } while (contains(hashValues, a, b));//(false) (a % 2 == 0 || contains(hashValues, a, b));
                 bVal = hashValues.get(a);
                 if (bVal == null) {

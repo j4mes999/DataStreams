@@ -13,7 +13,7 @@ public class HashFunction {
     
     private int a;
     private int b;
-    public static final int POWER = 23;
+    public static final int POWER = 5000000;
     private int maxR;
 
     
